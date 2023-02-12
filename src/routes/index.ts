@@ -1,17 +1,16 @@
-import express from "express"
-import resource from './_router'
+import express from 'express'
+import { register } from '../controllers/user_controller'
+import { registerValidation } from '../validations/user_validation'
 
-// instantiate a new router
 const router = express.Router()
 
-/**
- * GET /
- */
 router.get('/', (req, res) => {
 	res.send({
-		message: "I AM API, BEEP BOOP",
+		message: "I AM ALBIN'S PHOTOALBUM API, BEEP BOOP 🫶"
 	})
 })
+
+router.post('/register', registerValidation, register)
 
 /**
  * [EXAMPLE] /resource
