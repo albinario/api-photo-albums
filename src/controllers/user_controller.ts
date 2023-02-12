@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken'
 import { JwtPayload } from '../types'
 import { createUser, getUserByEmail } from '../services/user_service'
 
-const debug = Debug('🧔‍♀️ user_controller')
+const debug = Debug('api: 🧔‍♀️ user_controller')
 
 export const register = async (req: Request, res: Response) => {
 	const validationErrors = validationResult(req)

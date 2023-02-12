@@ -3,12 +3,9 @@ import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 import { JwtPayload } from '../../types'
 
-const debug = Debug('jwt')
+const debug = Debug('api: 🔐 jwt')
 
 export const validateToken = (req: Request, res: Response, next: NextFunction) => {
-	debug("Hello from auth/jwt!")
-	debug('now')
-
 	if (!req.headers.authorization) {
 		debug("Authorization header missing")
 
@@ -28,10 +25,6 @@ export const validateToken = (req: Request, res: Response, next: NextFunction) =
 
 	try {
 		const payload = (jwt.verify(token, process.env.ACCESS_TOKEN_SECRET || "") as unknown) as JwtPayload
-		debug("Yay got 📦: %o", payload)
-
-		console.log(req);
-		
 		req.token = payload
 
 	} catch (err) {

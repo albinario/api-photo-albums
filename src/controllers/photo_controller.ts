@@ -3,7 +3,7 @@ import { Request, Response } from 'express'
 import { validationResult } from 'express-validator'
 import prisma from '../prisma'
 
-const debug = Debug('📸 photo_controller')
+const debug = Debug('api: 📸 photo_controller')
 
 export const index = async (req: Request, res: Response) => {
 	try {
@@ -22,10 +22,10 @@ export const index = async (req: Request, res: Response) => {
 	}
 }
 
-/**
- * Get a single resource
- */
 export const show = async (req: Request, res: Response) => {
+	debug('hej')
+	const photoId = Number(req.params.photoId)
+	return
 }
 
 /**
