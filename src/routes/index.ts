@@ -1,6 +1,6 @@
 import express from 'express'
 import { register, login, refresh } from '../controllers/user_controller'
-import { validateToken } from '../middlewares/auth/jwt'
+import { tokenValidation } from '../middlewares/auth/jwt'
 import { registerValidation, loginValidation } from '../validations/user_validation'
 import photos from './photos'
 
@@ -18,11 +18,6 @@ router.post('/login', loginValidation, login)
 
 router.post('/refresh', refresh)
 
-router.use('/photos', validateToken, photos)
-
-/**
- * [EXAMPLE] /resource
- */
-// router.use('/resource', resource)
+router.use('/photos', tokenValidation, photos)
 
 export default router

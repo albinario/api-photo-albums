@@ -5,10 +5,9 @@ import { JwtPayload } from '../../types'
 
 const debug = Debug('api: 🔐 jwt')
 
-export const validateToken = (req: Request, res: Response, next: NextFunction) => {
+export const tokenValidation = (req: Request, res: Response, next: NextFunction) => {
 	if (!req.headers.authorization) {
 		debug("Authorization header missing")
-
 		return res.status(401).send({
 			status: 'fail',
 			data: "Authorization required"
@@ -17,6 +16,7 @@ export const validateToken = (req: Request, res: Response, next: NextFunction) =
 
 	const [authSchema, token] = req.headers.authorization.split(' ')
 	if (authSchema.toLowerCase() !== 'bearer') {
+		debug("Authorization schema isn't bearer")
 		return res.status(401).send({
 			status: 'fail',
 			data: "Authorization required"
@@ -28,6 +28,7 @@ export const validateToken = (req: Request, res: Response, next: NextFunction) =
 		req.token = payload
 
 	} catch (err) {
+		debug("Authorization failed on the finish line 🏁")
 		return res.status(401).send({
 			status: 'fail',
 			data: "Authorization required"
