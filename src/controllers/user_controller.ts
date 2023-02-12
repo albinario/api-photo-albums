@@ -28,7 +28,11 @@ export const register = async (req: Request, res: Response) => {
 		})
 		res.status(201).send({
 			status: 'success',
-			data: user
+			data: {
+				email: user.email,
+				first_name: user.first_name,
+				last_name: user.last_name
+			}
 		})
 	} catch (err) {
 		return res.status(500).send({
