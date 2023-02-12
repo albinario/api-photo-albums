@@ -51,7 +51,7 @@ export const login = async (req: Request, res: Response) => {
 	if (!user) {
 		return res.status(401).send({
 			status: 'fail',
-			message: "Authorization required",
+			message: "Authorization required"
 		})
 	}
 
@@ -59,7 +59,7 @@ export const login = async (req: Request, res: Response) => {
 	if (!isPasswordCorrect) {
 		return res.status(401).send({
 			status: 'fail',
-			message: "Authorization required",
+			message: "Authorization required"
 		})
 	}
 
@@ -71,28 +71,80 @@ export const login = async (req: Request, res: Response) => {
 	if (!process.env.ACCESS_TOKEN_SECRET) {
 		return res.status(500).send({
 			status: 'error',
-			message: "No access token secret defined",
+			message: "No access token secret defined"
 		})
 	}
 	const access_token = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {
-		expiresIn: process.env.ACCESS_TOKEN_LIFETIME || '4h',
+		expiresIn: process.env.ACCESS_TOKEN_LIFETIME || '4h'
 	})
 
 	if (!process.env.REFRESH_TOKEN_SECRET) {
 		return res.status(500).send({
 			status: 'error',
-			message: "No refresh token secret defined",
+			message: "No refresh token secret defined"
 		})
 	}
 	const refresh_token = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, {
-		expiresIn: process.env.REFRESH_TOKEN_LIFETIME || '1d',
+		expiresIn: process.env.REFRESH_TOKEN_LIFETIME || '1d'
 	})
 
 	res.send({
 		status: 'success',
 		data: {
 			access_token,
-			refresh_token,
+			refresh_token
 		}
 	})
+}
+
+export const refresh = (req: Request, res: Response) => {
+	if (!req.headers.authorization) {
+		debug("Authorization header missing")
+
+		return res.status(401).send({
+			status: 'fail',
+			data: "Authorization required"
+		})
+	}
+
+	const [authSchema, token] = req.headers.authorization.split(' ')
+
+	if (authSchema.toLowerCase() !== "bearer") {
+		debug("Authorization schema isn't Bearer")
+		return res.status(401).send({
+			status: 'fail',
+			data: "Authorization required"
+		})
+	}
+
+	try {
+		const payload = (jwt.verify(token, process.env.REFRESH_TOKEN_SECRET || '') as unknown) as JwtPayload
+		delete payload.iat
+		delete payload.exp
+
+		if (!process.env.ACCESS_TOKEN_SECRET) {
+			return res.status(500).send({
+				status: 'error',
+				message: "No access token secret defined"
+			})
+		}
+		const access_token = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {
+			expiresIn: process.env.ACCESS_TOKEN_LIFETIME || '4h'
+		})
+
+		res.send({
+			status: 'success',
+			data: {
+				access_token
+			}
+		})
+
+	} catch (err) {
+		debug("Token failed verification", err)
+
+		return res.status(401).send({
+			status: 'fail',
+			data: "Authorization required"
+		})
+	}
 }
