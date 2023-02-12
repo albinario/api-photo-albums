@@ -1,6 +1,6 @@
 import express from 'express'
-import { register } from '../controllers/user_controller'
-import { registerValidation } from '../validations/user_validation'
+import { register, login } from '../controllers/user_controller'
+import { registerValidation, loginValidation } from '../validations/user_validation'
 
 const router = express.Router()
 
@@ -11,6 +11,8 @@ router.get('/', (req, res) => {
 })
 
 router.post('/register', registerValidation, register)
+
+router.post('/login', loginValidation, login)
 
 /**
  * [EXAMPLE] /resource

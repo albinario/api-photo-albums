@@ -2,7 +2,9 @@ import bcrypt from 'bcrypt'
 import Debug from 'debug'
 import { Request, Response } from 'express'
 import { validationResult, matchedData } from 'express-validator'
-import { createUser } from '../services/user_service'
+import jwt from 'jsonwebtoken'
+import { JwtPayload } from '../types'
+import { createUser, getUserByEmail } from '../services/user_service'
 
 const debug = Debug('prisma-boilerplate:user_controller')
 
@@ -10,7 +12,7 @@ export const register = async (req: Request, res: Response) => {
 	const validationErrors = validationResult(req)
 	if (!validationErrors.isEmpty()) {
 		return res.status(400).send({
-			status: "fail",
+			status: 'fail',
 			data: validationErrors.array()
 		})
 	}
@@ -40,4 +42,57 @@ export const register = async (req: Request, res: Response) => {
 			message: "Couldn't create user in database"
 		})
 	}
+}
+
+export const login = async (req: Request, res: Response) => {
+	const { email, password } = req.body
+
+	const user = await getUserByEmail(email)
+	if (!user) {
+		return res.status(401).send({
+			status: 'fail',
+			message: "Authorization required",
+		})
+	}
+
+	const isPasswordCorrect = await bcrypt.compare(password, user.password)
+	if (!isPasswordCorrect) {
+		return res.status(401).send({
+			status: 'fail',
+			message: "Authorization required",
+		})
+	}
+
+	const payload: JwtPayload = {
+		sub: user.id,
+		email: user.email
+	}
+
+	if (!process.env.ACCESS_TOKEN_SECRET) {
+		return res.status(500).send({
+			status: 'error',
+			message: "No access token secret defined",
+		})
+	}
+	const access_token = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {
+		expiresIn: process.env.ACCESS_TOKEN_LIFETIME || '4h',
+	})
+
+	if (!process.env.REFRESH_TOKEN_SECRET) {
+		return res.status(500).send({
+			status: 'error',
+			message: "No refresh token secret defined",
+		})
+	}
+	const refresh_token = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, {
+		expiresIn: process.env.REFRESH_TOKEN_LIFETIME || '1d',
+	})
+
+	res.send({
+		status: 'success',
+		data: {
+			access_token,
+			refresh_token,
+		}
+	})
 }

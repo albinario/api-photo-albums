@@ -23,3 +23,13 @@ export const registerValidation = [
 		.isString().withMessage("Has to be a string").bail()
 		.isLength({ min: 3 }).withMessage("Has to be at least 3 characters")
 ]
+
+export const loginValidation = [
+	body('email')
+		.exists().withMessage("Missing").bail()
+		.isEmail().withMessage("Incorrect email address format").bail(),
+	body('password')
+		.exists().withMessage("Missing").bail()
+		.isString().withMessage("Has to be a string").bail()
+		.isLength({ min: 6 }).withMessage("Has to be at least 6 characters")
+]
