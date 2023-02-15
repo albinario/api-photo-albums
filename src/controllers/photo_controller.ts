@@ -1,7 +1,7 @@
 import Debug from 'debug'
 import { Request, Response } from 'express'
 import { validationResult, matchedData } from 'express-validator'
-import { getPhotos, getPhotoById, createPhoto } from '../services/photo_service'
+import { getPhotos, getPhotoById, createPhoto, updatePhoto } from '../services/photo_service'
 
 const debug = Debug('api: 📸 photo_controller')
 
@@ -41,7 +41,7 @@ export const show = async (req: Request, res: Response) => {
 			}
 		})
 	} catch (err) {
-		return res.status(404).send({
+		res.status(404).send({
 			status: 'fail',
 			message: "Photo not found"
 		})
@@ -51,13 +51,12 @@ export const show = async (req: Request, res: Response) => {
 export const store = async (req: Request, res: Response) => {
 	const validationErrors = validationResult(req)
 	if (!validationErrors.isEmpty()) {
-		return res.status(400).send({
+		res.status(400).send({
 			status: 'fail',
 			data: validationErrors.array()
 		})
 	}
 	const validData = matchedData(req)
-
 	try {
 		const photo = await createPhoto({
 			title: validData.title,
@@ -70,11 +69,35 @@ export const store = async (req: Request, res: Response) => {
 			data: photo
 		})
 	} catch (err) {
-
+		res.status(500).send({
+			status: 'error',
+			message: "Something went wrong when trying to store photo"
+		})
 	}
 }
 
 export const update = async (req: Request, res: Response) => {
+	const validationErrors = validationResult(req)
+	if (!validationErrors.isEmpty()) {
+		res.status(400).send({
+			status: 'fail',
+			data: validationErrors.array()
+		})
+	}
+	const validData = matchedData(req)
+	const photoId = Number(req.params.photoId)
+	try {
+		const photo = await updatePhoto(photoId, validData)
+		res.send({
+			status: 'success',
+			data: photo
+		})
+	} catch (err) {
+		res.status(500).send({
+			status: 'error',
+			message: "Something went wrong when trying to update photo"
+		})
+	}
 }
 
 export const destroy = async (req: Request, res: Response) => {
