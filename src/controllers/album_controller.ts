@@ -1,7 +1,7 @@
 import Debug from 'debug'
 import { Request, Response } from 'express'
 import { validationResult, matchedData } from 'express-validator'
-import { getAlbums, getAlbumById, createPhoto, updatePhoto, deletePhoto } from '../services/album_service'
+import { getAlbums, getAlbumById, findAlbum, createAlbum, updateAlbum, deleteAlbum } from '../services/album_service'
 
 const debug = Debug('api: 📔 album_controller')
 
@@ -45,10 +45,8 @@ export const store = async (req: Request, res: Response) => {
 	}
 	const validData = matchedData(req)
 	try {
-		const album = await createPhoto({
+		const album = await createAlbum({
 			title: validData.title,
-			url: validData.url,
-			comment: validData.comment,
 			user_id: req.token!.sub
 		})
 		res.send({
@@ -64,6 +62,13 @@ export const store = async (req: Request, res: Response) => {
 }
 
 export const update = async (req: Request, res: Response) => {
+	const album = await findAlbum(Number(req.params.albumId))
+	if (!album) {
+		return res.status(404).send({
+			status: 'fail',
+			message: "Album not found"
+		})
+	}
 	const validationErrors = validationResult(req)
 	if (!validationErrors.isEmpty()) {
 		return res.status(400).send({
@@ -73,10 +78,10 @@ export const update = async (req: Request, res: Response) => {
 	}
 	const validData = matchedData(req)
 	try {
-		const album = await updatePhoto(Number(req.params.albumId), validData)
+		const updatedAlbum = await updateAlbum(album.id, validData)
 		res.send({
 			status: 'success',
-			data: album
+			data: updatedAlbum
 		})
 	} catch (err) {
 		return res.status(500).send({
@@ -87,20 +92,19 @@ export const update = async (req: Request, res: Response) => {
 }
 
 export const destroy = async (req: Request, res: Response) => {
+	const album = await findAlbum(Number(req.params.albumId))
+	if (!album) {
+		return res.status(404).send({
+			status: 'fail',
+			message: "Album not found"
+		})
+	}
 	try {
-		try {
-			await deletePhoto(Number(req.params.albumId))
-			res.send({
-				status: 'success',
-				data: null
-			})
-		}
-		catch (err: unknown) {
-			return res.status(404).send({
-				status: 'fail',
-				message: (err instanceof Error) ? err.message : `Unknown error: ${err}`
-			})
-		}
+		await deleteAlbum(album.id)
+		res.send({
+			status: 'success',
+			data: null
+		})	
 	} catch (err) {
 		return res.status(500).send({
 			status: 'error',
