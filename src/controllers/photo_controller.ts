@@ -1,8 +1,6 @@
 import Debug from 'debug'
 import { Request, Response } from 'express'
 import { validationResult, matchedData } from 'express-validator'
-import { url } from 'inspector'
-import { title } from 'process'
 import prisma from '../prisma'
 import { createPhoto } from '../services/photo_service'
 
@@ -70,7 +68,7 @@ export const store = async (req: Request, res: Response) => {
 			title: validData.title,
 			url: validData.url,
 			comment: validData.comment,
-			user_id: 1
+			user_id: req.token!.sub
 		})
 		res.send({
 			status: 'success',
