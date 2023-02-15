@@ -22,8 +22,25 @@ export const createPhoto = async (data: CreatePhotoData) => {
 export const updatePhoto = async (id: number, data: UpdatePhotoData) => {
 	return await prisma.photo.update({
 		where: {
-			id: id,
+			id: id
 		},
-		data: data,
+		data: data
 	})
+}
+
+export const deletePhoto = async (id: number) => {
+	const photo = await prisma.photo.findUnique({
+		where: {
+			id: id
+		}
+	})
+	if (!photo) {
+		throw new Error("Photo not found")
+	}
+	await prisma.photo.delete({
+		where: {
+			id: id
+		}
+	})
+
 }

@@ -1,7 +1,7 @@
 import Debug from 'debug'
 import { Request, Response } from 'express'
 import { validationResult, matchedData } from 'express-validator'
-import { getPhotos, getPhotoById, createPhoto, updatePhoto } from '../services/photo_service'
+import { getPhotos, getPhotoById, createPhoto, updatePhoto, deletePhoto } from '../services/photo_service'
 
 const debug = Debug('api: 📸 photo_controller')
 
@@ -15,14 +15,14 @@ export const index = async (req: Request, res: Response) => {
 					id: photo.id,
 					title: photo.title,
 					url: photo.url,
-					comment: photo.comment 
+					comment: photo.comment
 				}
 			})
 		})
 	} catch (err) {
 		return res.status(500).send({
 			status: 'error',
-			message: "Something went wrong when trying to get photos"
+			message: "Something wrong when trying to get photos"
 		})
 	}
 }
@@ -71,7 +71,7 @@ export const store = async (req: Request, res: Response) => {
 	} catch (err) {
 		return res.status(500).send({
 			status: 'error',
-			message: "Something went wrong when trying to store photo"
+			message: "Something wrong when trying to store photo"
 		})
 	}
 }
@@ -85,9 +85,8 @@ export const update = async (req: Request, res: Response) => {
 		})
 	}
 	const validData = matchedData(req)
-	const photoId = Number(req.params.photoId)
 	try {
-		const photo = await updatePhoto(photoId, validData)
+		const photo = await updatePhoto(Number(req.params.photoId), validData)
 		res.send({
 			status: 'success',
 			data: photo
@@ -95,10 +94,30 @@ export const update = async (req: Request, res: Response) => {
 	} catch (err) {
 		return res.status(500).send({
 			status: 'error',
-			message: "Something went wrong when trying to update photo"
+			message: "Something wrong when trying to update photo"
 		})
 	}
 }
 
 export const destroy = async (req: Request, res: Response) => {
+	try {
+		try {
+			await deletePhoto(Number(req.params.photoId))
+			res.send({
+				status: 'success',
+				data: null
+			})
+		}
+		catch (err: unknown) {
+			return res.status(404).send({
+				status: 'fail',
+				message: (err instanceof Error) ? err.message : `Unknown error: ${err}`
+			})
+		}
+	} catch (err) {
+		return res.status(500).send({
+			status: 'error',
+			message: "Something wrong when trying to delete photo"
+		})
+	}
 }
