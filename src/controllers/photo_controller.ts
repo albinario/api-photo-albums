@@ -1,7 +1,8 @@
+import { prisma } from '@prisma/client'
 import Debug from 'debug'
 import { Request, Response } from 'express'
 import { validationResult, matchedData } from 'express-validator'
-import { getPhotos, getPhotoById, createPhoto, updatePhoto, deletePhoto } from '../services/photo_service'
+import { getPhotos, getPhotoById, findPhoto, createPhoto, updatePhoto, deletePhoto } from '../services/photo_service'
 
 const debug = Debug('api: 📸 photo_controller')
 
@@ -76,6 +77,13 @@ export const store = async (req: Request, res: Response) => {
 }
 
 export const update = async (req: Request, res: Response) => {
+	const photo = await findPhoto(Number(req.params.photoId))
+	if (!photo) {
+		return res.status(404).send({
+			status: 'fail',
+			message: "Photo not found"
+		})
+	}
 	const validationErrors = validationResult(req)
 	if (!validationErrors.isEmpty()) {
 		return res.status(400).send({
@@ -85,10 +93,10 @@ export const update = async (req: Request, res: Response) => {
 	}
 	const validData = matchedData(req)
 	try {
-		const photo = await updatePhoto(Number(req.params.photoId), validData)
+		const updatedPhoto = await updatePhoto(photo.id, validData)
 		res.send({
 			status: 'success',
-			data: photo
+			data: updatedPhoto
 		})
 	} catch (err) {
 		return res.status(500).send({
@@ -99,20 +107,19 @@ export const update = async (req: Request, res: Response) => {
 }
 
 export const destroy = async (req: Request, res: Response) => {
+	const photo = await findPhoto(Number(req.params.photoId))
+	if (!photo) {
+		return res.status(404).send({
+			status: 'fail',
+			message: "Photo not found"
+		})
+	}
 	try {
-		try {
-			await deletePhoto(Number(req.params.photoId))
-			res.send({
-				status: 'success',
-				data: null
-			})
-		}
-		catch (err: unknown) {
-			return res.status(404).send({
-				status: 'fail',
-				message: (err instanceof Error) ? err.message : `Unknown error: ${err}`
-			})
-		}
+		await deletePhoto(photo.id)
+		res.send({
+			status: 'success',
+			data: null
+		})
 	} catch (err) {
 		return res.status(500).send({
 			status: 'error',
