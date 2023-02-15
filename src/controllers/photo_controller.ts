@@ -77,18 +77,18 @@ export const store = async (req: Request, res: Response) => {
 }
 
 export const update = async (req: Request, res: Response) => {
-	const photo = await findPhoto(Number(req.params.photoId))
-	if (!photo) {
-		return res.status(404).send({
-			status: 'fail',
-			message: "Photo not found"
-		})
-	}
 	const validationErrors = validationResult(req)
 	if (!validationErrors.isEmpty()) {
 		return res.status(400).send({
 			status: 'fail',
 			data: validationErrors.array()
+		})
+	}
+	const photo = await findPhoto(Number(req.params.photoId))
+	if (!photo) {
+		return res.status(404).send({
+			status: 'fail',
+			message: "Photo not found"
 		})
 	}
 	const validData = matchedData(req)
