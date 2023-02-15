@@ -1,14 +1,13 @@
 import Debug from 'debug'
 import { Request, Response } from 'express'
 import { validationResult, matchedData } from 'express-validator'
-import prisma from '../prisma'
-import { createPhoto } from '../services/photo_service'
+import { getPhotos, getPhotoById, createPhoto } from '../services/photo_service'
 
 const debug = Debug('api: 📸 photo_controller')
 
 export const index = async (req: Request, res: Response) => {
 	try {
-		const photos = await prisma.photo.findMany()
+		const photos = await getPhotos()
 		res.send({
 			status: 'success',
 			data: photos.map(photo => {
@@ -31,11 +30,7 @@ export const index = async (req: Request, res: Response) => {
 export const show = async (req: Request, res: Response) => {
 	const photoId = Number(req.params.photoId)
 	try {
-		const photo = await prisma.photo.findUniqueOrThrow({
-			where: {
-				id: photoId
-			}
-		})
+		const photo = await getPhotoById(photoId)
 		res.send({
 			status: 'success',
 			data: {
