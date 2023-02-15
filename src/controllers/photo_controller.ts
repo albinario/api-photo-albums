@@ -28,9 +28,8 @@ export const index = async (req: Request, res: Response) => {
 }
 
 export const show = async (req: Request, res: Response) => {
-	const photoId = Number(req.params.photoId)
 	try {
-		const photo = await getPhotoById(photoId)
+		const photo = await getPhotoById(Number(req.params.photoId))
 		res.send({
 			status: 'success',
 			data: {
