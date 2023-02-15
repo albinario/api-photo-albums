@@ -11,16 +11,14 @@ const debug = Debug('api: 🧔‍♀️ user_controller')
 export const register = async (req: Request, res: Response) => {
 	const validationErrors = validationResult(req)
 	if (!validationErrors.isEmpty()) {
-		return res.status(400).send({
+		res.status(400).send({
 			status: 'fail',
 			data: validationErrors.array()
 		})
 	}
 	const validData = matchedData(req)
-	
 	const hashedPassword = await bcrypt.hash(validData.password, Number(process.env.SALT_ROUNDS) || 10)
 	validData.password = hashedPassword
-
 	try {
 		const user = await createUser({
 			email: validData.email,
@@ -37,7 +35,7 @@ export const register = async (req: Request, res: Response) => {
 			}
 		})
 	} catch (err) {
-		return res.status(500).send({
+		res.status(500).send({
 			status: 'error',
 			message: "Couldn't create user in database"
 		})
@@ -46,7 +44,6 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
 	const { email, password } = req.body
-
 	const user = await getUserByEmail(email)
 	if (!user) {
 		return res.status(401).send({
@@ -54,20 +51,17 @@ export const login = async (req: Request, res: Response) => {
 			message: "Authorization required"
 		})
 	}
-
 	const isPasswordCorrect = await bcrypt.compare(password, user.password)
 	if (!isPasswordCorrect) {
-		return res.status(401).send({
+		res.status(401).send({
 			status: 'fail',
 			message: "Authorization required"
 		})
 	}
-
 	const payload: JwtPayload = {
 		sub: user.id,
 		email: user.email
 	}
-
 	if (!process.env.ACCESS_TOKEN_SECRET) {
 		return res.status(500).send({
 			status: 'error',
@@ -77,7 +71,6 @@ export const login = async (req: Request, res: Response) => {
 	const access_token = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {
 		expiresIn: process.env.ACCESS_TOKEN_LIFETIME || '4h'
 	})
-
 	if (!process.env.REFRESH_TOKEN_SECRET) {
 		return res.status(500).send({
 			status: 'error',
@@ -87,7 +80,6 @@ export const login = async (req: Request, res: Response) => {
 	const refresh_token = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, {
 		expiresIn: process.env.REFRESH_TOKEN_LIFETIME || '1d'
 	})
-
 	res.send({
 		status: 'success',
 		data: {
@@ -100,28 +92,23 @@ export const login = async (req: Request, res: Response) => {
 export const refresh = (req: Request, res: Response) => {
 	if (!req.headers.authorization) {
 		debug("Authorization header missing")
-
 		return res.status(401).send({
 			status: 'fail',
 			data: "Authorization required"
 		})
 	}
-
 	const [authSchema, token] = req.headers.authorization.split(' ')
-
 	if (authSchema.toLowerCase() !== "bearer") {
 		debug("Authorization schema isn't Bearer")
-		return res.status(401).send({
+		res.status(401).send({
 			status: 'fail',
 			data: "Authorization required"
 		})
 	}
-
 	try {
 		const payload = (jwt.verify(token, process.env.REFRESH_TOKEN_SECRET || '') as unknown) as JwtPayload
 		delete payload.iat
 		delete payload.exp
-
 		if (!process.env.ACCESS_TOKEN_SECRET) {
 			return res.status(500).send({
 				status: 'error',
@@ -131,18 +118,15 @@ export const refresh = (req: Request, res: Response) => {
 		const access_token = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {
 			expiresIn: process.env.ACCESS_TOKEN_LIFETIME || '4h'
 		})
-
 		res.send({
 			status: 'success',
 			data: {
 				access_token
 			}
 		})
-
 	} catch (err) {
 		debug("Token failed verification", err)
-
-		return res.status(401).send({
+		res.status(401).send({
 			status: 'fail',
 			data: "Authorization required"
 		})
