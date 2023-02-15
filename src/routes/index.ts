@@ -3,6 +3,7 @@ import { register, login, refresh } from '../controllers/user_controller'
 import { tokenValidation } from '../middlewares/auth/jwt'
 import { registerValidation, loginValidation } from '../validations/user_validation'
 import photos from './photos'
+import albums from './albums'
 
 const router = express.Router()
 
@@ -19,5 +20,7 @@ router.post('/login', loginValidation, login)
 router.post('/refresh', refresh)
 
 router.use('/photos', tokenValidation, photos)
+
+router.use('/albums', tokenValidation, albums)
 
 export default router
