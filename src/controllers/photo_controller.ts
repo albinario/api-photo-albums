@@ -20,7 +20,7 @@ export const index = async (req: Request, res: Response) => {
 			})
 		})
 	} catch (err) {
-		res.status(500).send({
+		return res.status(500).send({
 			status: 'error',
 			message: "Something went wrong when trying to get photos"
 		})
@@ -41,7 +41,7 @@ export const show = async (req: Request, res: Response) => {
 			}
 		})
 	} catch (err) {
-		res.status(404).send({
+		return res.status(404).send({
 			status: 'fail',
 			message: "Photo not found"
 		})
@@ -51,7 +51,7 @@ export const show = async (req: Request, res: Response) => {
 export const store = async (req: Request, res: Response) => {
 	const validationErrors = validationResult(req)
 	if (!validationErrors.isEmpty()) {
-		res.status(400).send({
+		return res.status(400).send({
 			status: 'fail',
 			data: validationErrors.array()
 		})
@@ -69,7 +69,7 @@ export const store = async (req: Request, res: Response) => {
 			data: photo
 		})
 	} catch (err) {
-		res.status(500).send({
+		return res.status(500).send({
 			status: 'error',
 			message: "Something went wrong when trying to store photo"
 		})
@@ -79,7 +79,7 @@ export const store = async (req: Request, res: Response) => {
 export const update = async (req: Request, res: Response) => {
 	const validationErrors = validationResult(req)
 	if (!validationErrors.isEmpty()) {
-		res.status(400).send({
+		return res.status(400).send({
 			status: 'fail',
 			data: validationErrors.array()
 		})
@@ -93,7 +93,7 @@ export const update = async (req: Request, res: Response) => {
 			data: photo
 		})
 	} catch (err) {
-		res.status(500).send({
+		return res.status(500).send({
 			status: 'error',
 			message: "Something went wrong when trying to update photo"
 		})

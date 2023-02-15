@@ -11,7 +11,7 @@ const debug = Debug('api: 🧔‍♀️ user_controller')
 export const register = async (req: Request, res: Response) => {
 	const validationErrors = validationResult(req)
 	if (!validationErrors.isEmpty()) {
-		res.status(400).send({
+		return res.status(400).send({
 			status: 'fail',
 			data: validationErrors.array()
 		})
@@ -35,7 +35,7 @@ export const register = async (req: Request, res: Response) => {
 			}
 		})
 	} catch (err) {
-		res.status(500).send({
+		return res.status(500).send({
 			status: 'error',
 			message: "Couldn't create user in database"
 		})
@@ -53,7 +53,7 @@ export const login = async (req: Request, res: Response) => {
 	}
 	const isPasswordCorrect = await bcrypt.compare(password, user.password)
 	if (!isPasswordCorrect) {
-		res.status(401).send({
+		return res.status(401).send({
 			status: 'fail',
 			message: "Authorization required"
 		})
@@ -100,7 +100,7 @@ export const refresh = (req: Request, res: Response) => {
 	const [authSchema, token] = req.headers.authorization.split(' ')
 	if (authSchema.toLowerCase() !== "bearer") {
 		debug("Authorization schema isn't Bearer")
-		res.status(401).send({
+		return res.status(401).send({
 			status: 'fail',
 			data: "Authorization required"
 		})
@@ -126,7 +126,7 @@ export const refresh = (req: Request, res: Response) => {
 		})
 	} catch (err) {
 		debug("Token failed verification", err)
-		res.status(401).send({
+		return res.status(401).send({
 			status: 'fail',
 			data: "Authorization required"
 		})
