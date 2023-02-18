@@ -43,3 +43,11 @@ export const deletePhoto = async (id: number) => {
 		}
 	})
 }
+
+export const checkExistance = async (photos: number[]) => {
+	return await prisma.photo.findMany({
+		where: {
+			id: { in: photos }
+		}
+	})
+}
