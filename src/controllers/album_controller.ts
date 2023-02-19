@@ -111,6 +111,7 @@ export const destroy = async (req: Request, res: Response) => {
 		await deleteAlbum(albumId)
 		res.send({
 			status: 'success',
+			message: `Album ${albumId} deleted`,
 			data: null
 		})	
 	} catch (err) {
@@ -138,7 +139,7 @@ export const connectPhotos = async (req: Request, res: Response) => {
 		})
 	}
 	const validData = matchedData(req)
-	let photosToConnect: number[] = []
+	const photosToConnect: number[] = []
 	if (typeof validData.photo_id === 'number') {
 		photosToConnect.push(validData.photo_id)
 	} else if (Array.isArray(validData.photo_id)) {
@@ -158,9 +159,10 @@ export const connectPhotos = async (req: Request, res: Response) => {
 	}
 	try {
 		await connectPhotosToAlbum(photosToConnect, albumId)
+		const album = await getAlbumById(albumId)
 		res.send({
 			status: 'success',
-			data: null
+			data: album
 		})
 	} catch (err) {
 		return res.status(500).send({
