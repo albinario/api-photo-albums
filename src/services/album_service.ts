@@ -1,9 +1,12 @@
 import prisma from '../prisma'
-import { Photo } from '@prisma/client'
 import { CreateAlbumData, UpdateAlbumData } from '../types'
 
-export const getAlbums = async () => {
-	return await prisma.album.findMany()
+export const getAlbums = async (userId: number) => {
+	return await prisma.album.findMany({
+		where: {
+			user_id: userId
+		}
+	})
 }
 
 export const getAlbumById = async (id: number) => {
@@ -13,14 +16,6 @@ export const getAlbumById = async (id: number) => {
 		},
 		include: {
 			photos: true
-		}
-	})
-}
-
-export const findAlbum = async (id: number) => {
-	return await prisma.album.findUnique({
-		where: {
-			id: id
 		}
 	})
 }
@@ -49,7 +44,7 @@ export const deleteAlbum = async (id: number) => {
 	})
 }
 
-export const connectPhotosToAlbum = async (photos: Photo[], albumId: number) => {
+export const connectPhotosToAlbum = async (photos: number[], albumId: number) => {
 	return await prisma.album.update({
 		where: {
 			id: albumId
@@ -57,9 +52,22 @@ export const connectPhotosToAlbum = async (photos: Photo[], albumId: number) => 
 		data: {
 			photos: {
 				connect: photos.map(photo => ({
-					id: photo.id
+					id: photo
 				}))
 			}
 		}
 	})
+}
+
+export const checkOwnershipAlbum = async (userId: number, albumId: number) => {
+	const album = await prisma.album.findUnique({
+		where: {
+			id: albumId
+		}
+	})
+	if (album && userId === album.user_id) {
+		return true
+	} else {
+		return false
+	}
 }

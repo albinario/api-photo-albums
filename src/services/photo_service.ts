@@ -44,10 +44,15 @@ export const deletePhoto = async (id: number) => {
 	})
 }
 
-export const checkExistance = async (photos: number[]) => {
-	return await prisma.photo.findMany({
+export const checkOwnershipPhoto = async (userId: number, photoId: number) => {
+	const photo = await prisma.photo.findUnique({
 		where: {
-			id: { in: photos }
+			id: photoId
 		}
 	})
+	if (photo && userId === photo.user_id) {
+		return true
+	} else {
+		return false
+	}
 }
