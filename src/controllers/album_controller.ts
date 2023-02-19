@@ -153,7 +153,7 @@ export const connectPhotos = async (req: Request, res: Response) => {
 		if (!await checkOwnershipPhoto(userId, photo)) {
 			return res.status(403).send({
 				status: 'fail',
-				message: "You don't have access one or more photos"
+				message: "You don't have access to one or more photos"
 			})
 		}
 	}
