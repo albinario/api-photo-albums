@@ -1,14 +1,13 @@
-import { prisma } from '@prisma/client'
 import Debug from 'debug'
 import { Request, Response } from 'express'
 import { validationResult, matchedData } from 'express-validator'
-import { getPhotos, getPhotoById, findPhoto, createPhoto, updatePhoto, deletePhoto } from '../services/photo_service'
+import { getPhotos, getPhotoById, createPhoto, updatePhoto, deletePhoto, checkOwnershipPhoto } from '../services/photo_service'
 
 const debug = Debug('api: 📸 photo_controller')
 
 export const index = async (req: Request, res: Response) => {
 	try {
-		const photos = await getPhotos()
+		const photos = await getPhotos(req.token!.sub)
 		res.send({
 			status: 'success',
 			data: photos.map(photo => {
@@ -29,8 +28,15 @@ export const index = async (req: Request, res: Response) => {
 }
 
 export const show = async (req: Request, res: Response) => {
+	const photoId = Number(req.params.photoId)
+	if (!await checkOwnershipPhoto(req.token!.sub, photoId)) {
+		return res.status(403).send({
+			status: 'fail',
+			message: "You don't have access to this photo"
+		})
+	}
 	try {
-		const photo = await getPhotoById(Number(req.params.photoId))
+		const photo = await getPhotoById(photoId)
 		res.send({
 			status: 'success',
 			data: {
@@ -84,16 +90,16 @@ export const update = async (req: Request, res: Response) => {
 			data: validationErrors.array()
 		})
 	}
-	const photo = await findPhoto(Number(req.params.photoId))
-	if (!photo) {
-		return res.status(404).send({
+	const photoId = Number(req.params.photoId)
+	if (!await checkOwnershipPhoto(req.token!.sub, photoId)) {
+		return res.status(403).send({
 			status: 'fail',
-			message: "Photo not found"
+			message: "You don't have access to this photo"
 		})
 	}
 	const validData = matchedData(req)
 	try {
-		const updatedPhoto = await updatePhoto(photo.id, validData)
+		const updatedPhoto = await updatePhoto(photoId, validData)
 		res.send({
 			status: 'success',
 			data: updatedPhoto
@@ -107,17 +113,18 @@ export const update = async (req: Request, res: Response) => {
 }
 
 export const destroy = async (req: Request, res: Response) => {
-	const photo = await findPhoto(Number(req.params.photoId))
-	if (!photo) {
-		return res.status(404).send({
+	const photoId = Number(req.params.photoId)
+	if (!await checkOwnershipPhoto(req.token!.sub, photoId)) {
+		return res.status(403).send({
 			status: 'fail',
-			message: "Photo not found"
+			message: "You don't have access to this photo"
 		})
 	}
 	try {
-		await deletePhoto(photo.id)
+		await deletePhoto(photoId)
 		res.send({
 			status: 'success',
+			message: `Photo ${photoId} deleted`,
 			data: null
 		})
 	} catch (err) {
