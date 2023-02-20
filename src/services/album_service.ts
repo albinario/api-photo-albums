@@ -9,6 +9,19 @@ export const getAlbums = async (userId: number) => {
 	})
 }
 
+export const checkOwnershipAlbum = async (userId: number, albumId: number) => {
+	const album = await prisma.album.findUnique({
+		where: {
+			id: albumId
+		}
+	})
+	if (album && userId === album.user_id) {
+		return true
+	} else {
+		return false
+	}
+}
+
 export const getAlbumById = async (id: number) => {
 	return await prisma.album.findUniqueOrThrow({
 		where: {
@@ -59,15 +72,17 @@ export const connectPhotosToAlbum = async (photos: number[], albumId: number) =>
 	})
 }
 
-export const checkOwnershipAlbum = async (userId: number, albumId: number) => {
-	const album = await prisma.album.findUnique({
+export const removePhotoFromAlbum = async (albumId: number, photoId: number) => {
+	return await prisma.album.update({
 		where: {
 			id: albumId
+		},
+		data: {
+			photos: {
+				disconnect: {
+					id: photoId
+				}
+			}
 		}
 	})
-	if (album && userId === album.user_id) {
-		return true
-	} else {
-		return false
-	}
 }

@@ -1,7 +1,7 @@
 import Debug from 'debug'
 import { Request, Response } from 'express'
 import { validationResult, matchedData } from 'express-validator'
-import { getAlbums, getAlbumById, createAlbum, updateAlbum, deleteAlbum, connectPhotosToAlbum, checkOwnershipAlbum } from '../services/album_service'
+import { getAlbums, getAlbumById, createAlbum, updateAlbum, deleteAlbum, connectPhotosToAlbum, checkOwnershipAlbum, removePhotoFromAlbum } from '../services/album_service'
 import { checkOwnershipPhoto } from '../services/photo_service'
 
 const debug = Debug('api: 📔 album_controller')
@@ -168,6 +168,38 @@ export const connectPhotos = async (req: Request, res: Response) => {
 		return res.status(500).send({
 			status: 'error',
 			message: "Something wrong when trying to connect a photo"
+		})
+	}
+}
+
+export const removePhoto = async (req: Request, res: Response) => {
+	const userId = req.token!.sub
+	const albumId = Number(req.params.albumId)
+	if (!await checkOwnershipAlbum(userId, albumId)) {
+		return res.status(403).send({
+			status: 'fail',
+			message: "You don't have access to this album"
+		})
+	}
+	const photoId = Number(req.params.photoId)
+	if (!await checkOwnershipPhoto(userId, photoId)) {
+		return res.status(403).send({
+			status: 'fail',
+			message: "You don't have access to one or more photos"
+		})
+	}
+	try {
+		await removePhotoFromAlbum(albumId, photoId)
+		const album = await getAlbumById(albumId)
+		res.send({
+			status: 'success',
+			message: `Photo ${photoId} removed from Album ${albumId}`,
+			data: album
+		})
+	} catch (err) {
+		return res.status(500).send({
+			status: 'error',
+			message: "Something wrong when trying to remove a photo from an album"
 		})
 	}
 }
