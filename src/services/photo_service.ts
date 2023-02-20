@@ -9,6 +9,19 @@ export const getPhotos = async (userId: number) => {
 	})
 }
 
+export const checkOwnershipPhoto = async (userId: number, photoId: number) => {
+	const photo = await prisma.photo.findUnique({
+		where: {
+			id: photoId
+		}
+	})
+	if (photo && userId === photo.user_id) {
+		return true
+	} else {
+		return false
+	}
+}
+
 export const getPhotoById = async (id: number) => {
 	return await prisma.photo.findUniqueOrThrow({
 		where: {
@@ -46,17 +59,4 @@ export const deletePhoto = async (id: number) => {
 			id: id
 		}
 	})
-}
-
-export const checkOwnershipPhoto = async (userId: number, photoId: number) => {
-	const photo = await prisma.photo.findUnique({
-		where: {
-			id: photoId
-		}
-	})
-	if (photo && userId === photo.user_id) {
-		return true
-	} else {
-		return false
-	}
 }
