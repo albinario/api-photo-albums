@@ -60,3 +60,15 @@ export const deletePhoto = async (id: number) => {
 		}
 	})
 }
+
+export const isPhotoInAlbum = async (photoId: number, albumId: number) => {
+	const album = await prisma.album.findUnique({
+		where: {
+			id: albumId
+		},
+		include: {
+			photos: true
+		}
+	})
+	return album?.photos.some(photo => photo.id === photoId)
+}

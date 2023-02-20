@@ -2,7 +2,7 @@ import Debug from 'debug'
 import { Request, Response } from 'express'
 import { validationResult, matchedData } from 'express-validator'
 import { getAlbums, getAlbumById, createAlbum, updateAlbum, deleteAlbum, connectPhotosToAlbum, checkOwnershipAlbum, removePhotoFromAlbum } from '../services/album_service'
-import { checkOwnershipPhoto } from '../services/photo_service'
+import { checkOwnershipPhoto, isPhotoInAlbum } from '../services/photo_service'
 
 const debug = Debug('api: 📔 album_controller')
 
@@ -186,6 +186,12 @@ export const removePhoto = async (req: Request, res: Response) => {
 		return res.status(403).send({
 			status: 'fail',
 			message: "You don't have access to one or more photos"
+		})
+	}
+	if (!await isPhotoInAlbum(photoId, albumId)) {
+		return res.status(400).send({
+			status: 'fail',
+			message: "Photo is not in this album"
 		})
 	}
 	try {
